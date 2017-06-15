@@ -17,22 +17,32 @@ if(length(data[,1]) < 1){
   stop("ERROR: no site has greater than 10x coverage");
 }
 
+#for i in 1 to the number of rows (aka each line)
 for (i in 1:nrow(data)) {
+  #counter var = 0, alpha 
 	counter <- 0; alpha <- c(NA,NA); num <- c(0,0)
+        #for j: 5 to 11, every other 
 	for (j in seq(5,11,2)) {
+          #if data value > 5: add 1 to counter, alpha[1] = letter, num[1] = num of that letter
 		if (data[i,j] > 5) {
 		counter <- counter + 1
 		alpha[counter] <- data[i,j-1]
 		num[counter] <- data[i,j]
 		}
 	}
+        #if letter has depth > 12 and there's no other letter, set that data value to the corresponding letter  
 	if (num[1] >= 12 & num[2] == 0) {
 		data[i,14] <- alpha[1]
 	}
+        #if both are greater than 12, we must perform a test to see what will happen
 	if (counter == 2 & (num[1] + num[2]) >= 12) {
+          #total is equal to the values in 1 and 2, half 
 		total <- num[1] + num[2]; half <- round((num[1] + num[2])/2)
+                #test if confident that it is 1 (homo)
 		p1 <- fisher.test(rbind(c(num[1],num[2]),c(total,0)), alternative="two.sided", conf.level=0.95)$p.value
+                #test if confident it is 2 (homo)
 		p2 <- fisher.test(rbind(c(num[1],num[2]),c(0,total)), alternative="two.sided", conf.level=0.95)$p.value
+                #test if confident it is hetero
 		p3 <- fisher.test(rbind(c(num[1],num[2]),c(half,half)), alternative="two.sided", conf.level=0.95)$p.value
 		if (p1 >= p2 & p1 >= p3) {
 			data[i,14] <- alpha[1]

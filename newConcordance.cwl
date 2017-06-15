@@ -2,7 +2,7 @@ cwlVersion: v1.0
 class: CommandLineTool
 label: "concordance_tool"
 baseCommand: 
-#do we need to run in a Docker container?
+#which Docker container?
 hints:
     class: DockerRequirement
     dockerPull:
