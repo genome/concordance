@@ -21,7 +21,8 @@ def checkForIndex(file):
 def bamReadcount(bamFile):
     bamReadcountCmd = ['/usr/bin/bam-readcount', '-f', refFasta, '-l', snpFile]
     print(refFasta, snpFile)
-    outputFile = os.path.join(tempdir, bamFile + '_rc.tsv')
+    bam_file_name = bamFile.split('/')
+    outputFile = os.path.join(tempdir, bam_file_name[-1] + '_rc.tsv')
     print(outputFile)
     bamReadcountCmd.append(bamFile)
     print(bamReadcountCmd)
