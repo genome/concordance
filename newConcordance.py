@@ -11,7 +11,7 @@ from collections import defaultdict
 import FisherExact
 
 #check to ensure files have corresponding index files
-def checkForIndex(file):
+def check_for_index(file):
     if os.path.isfile(file):
         print("Index file exists")
     else:
@@ -20,49 +20,46 @@ def checkForIndex(file):
         sys.exit()
 
 #execute bam-readcount
-def bamReadcount(bamFile):
-    bamReadcountCmd = ['/usr/bin/bam-readcount', '-f', refFasta, '-l', snpFile]
-    print(refFasta, snpFile)
-    bamFileName = bamFile.split('/')
-    outputFile = os.path.join(tempdir, bamFileName[-1] + '_rc.tsv')
-    print(outputFile)
-    bamReadcountCmd.append(bamFile)
-    print(bamReadcountCmd)
-    execution = Popen(bamReadcountCmd, stdout=PIPE, stderr=PIPE)
+def bam_readcount(bam_file):
+    bam_readcount_cmd = ['/usr/bin/bam-readcount', '-f', ref_fasta, '-l', snp_file]
+    print(ref_fasta, snp_file)
+    bam_file_name = bam_file.split('/')
+    output_file = os.path.join(tempdir, bam_file_name[-1] + '_rc.tsv')
+    print(output_file)
+    bam_readcount_cmd.append(bam_file)
+    print(bam_readcount_cmd)
+    execution = Popen(bam_readcount_cmd, stdout=PIPE, stderr=PIPE)
     stdout, stderr = execution.communicate()
     if execution.returncode == 0:
-        with open(outputFile, 'wb') as outputFh:
-            outputFh.write(stdout)
+        with open(output_file, 'wb') as output_fh:
+            output_fh.write(stdout)
             print("Output written")
-        outputFh.close()
+        output_fh.close()
         #quits if output file is empty
-        if os.stat(outputFile).st_size == 0:
+        if os.stat(output_file).st_size == 0:
             print("No output from bam-readcount")
             sys.exit()
     else:
         print("no output written")
         sys.exit(stderr)
-    return outputFile 
+    return output_file 
 
-def parseRc(rcOutputFile, i):
-    parseFile = os.path.join(tempdir, "parse_file_" + str(i))
-    print(parseFile)
-    with open(parseFile, 'w') as parseFileFh:
-        with open(rcOutputFile, 'r') as rcOutput:
-            for line in rcOutput:
+def parse_rc(rc_output_file, i):
+    parse_file = os.path.join(tempdir, "parse_file_" + str(i))
+    print(parse_file)
+    with open(parse_file, 'w') as parse_file_fh:
+        with open(rc_output_file, 'r') as rc_output:
+            for line in rc_output:
                 #replace : with /t
-                editedLine = line.replace(":","\t")
+                edited_line = line.replace(":","\t")
                 #split at each tab
-                field = editedLine.split("\t")
+                field = edited_line.split("\t")
                 #write the array elements you want to keep onto parse_file 
                 #(chr pos refbase A # C # G # T #)
-                parseFileFh.write(field[0] + "\t" + field[1] + "\t" + field [2] + "\t" + field[18] + "\t" + field[19] + "\t" + field[32] + "\t" + field[33] + "\t" + field[46] + "\t" + field[47] + "\t" + field[60] + "\t" + field[61] + "\t" + field[74] + "\t" + field[75] + " \n")
-        rcOutput.close()
-        parseFileFh.close()
-        ##with open(parseFile, 'r') as f:
-        ##   print(f.read())
-        ##f.close()
-    return parseFile
+                parse_file_fh.write(field[0] + "\t" + field[1] + "\t" + field [2] + "\t" + field[18] + "\t" + field[19] + "\t" + field[32] + "\t" + field[33] + "\t" + field[46] + "\t" + field[47] + "\t" + field[60] + "\t" + field[61] + "\t" + field[74] + "\t" + field[75] + " \n")
+        rc_output.close()
+        parse_file_fh.close()
+    return parse_file
 
 #make genotype calls with fisher exact test
 def geno_calc(parsed_file, i):
@@ -72,29 +69,22 @@ def geno_calc(parsed_file, i):
         with open(output_file, 'w') as out_f:
             for line in data_file:
                 counter, letter, alpha, num = 0, 3, [None, None, None, None], [0,0,0,0]
-                ##print(line)
                 field = line.rstrip('\n').split("\t")
                 depth = int(field[4]) + int(field[6]) + int(field[8]) + int(field[10])
                 if depth >= 10:
-                    ##print("Deep enough! : " + str(depth))
                     deep_enough += 1
 
                     for val in field[4:11:2]:
-                        ##print(val)
-                        ##print(int(val))
                         if int(val) > 5:
                             alpha[counter] = field[letter]
                             num[counter] = val
                             counter += 1
-                            ##print(alpha + num)
-                            ##print(counter)
                         letter += 2
                     if int(num[0]) >= 12 and int(num[1]) == 0:
                         field.append(alpha[0] + "\n")
                     elif counter == 2 and (int(num[0]) + int(num[1]) >= 12):
                                 total = int(num[0]) + int(num[1])
                                 half = total / 2
-                                ##print(str(total) + " " + str(half))
                                 p_hetero = FisherExact.fisher_exact([[num[0], num[1]], [half, half]])
                                 p_homo_1 = FisherExact.fisher_exact([[num[0], num[1]], [total, 0]])
                                 p_homo_2 = FisherExact.fisher_exact([[num[0], num[1]], [0, total]])
@@ -106,9 +96,7 @@ def geno_calc(parsed_file, i):
                                     field.append(alpha[1] + "\n")   
                     else:
                         field.append("NA\n")
-                    ##print(field)
                     line = "\t".join(field)
-                    ##print(line)
                     out_f.write(line)
                 else:
                     field.append("NA\n")
@@ -121,52 +109,26 @@ def geno_calc(parsed_file, i):
         out_f.close()
     data_file.close()
     return output_file
-        
-'''
-#run R script to make genotype calls
-def runR(parsedFile):
-    rScriptCmd = ['Rscript']
-    rScript = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Concordance.R")
-    rScriptCmd.append(rScript)
-    rScriptCmd.append(parsedFile)
-    output = os.path.join(tempdir, parsedFile +  ".r_file")
-    rScriptCmd.append(output)
-    print(rScriptCmd)
-    execution = Popen(rScriptCmd)
-    execution.communicate()
-    if execution.returncode != 0:
-        print("Error in R Script execution")
-        sys.exit()
-    return output
-'''
 
 #open the output file from R and get the genotype
-def getGenotypes(rOutputFile,  n):
+def get_genotypes(r_output_file,  n):
     total, snp = [], []
-    validGenotypes = 0
-    with open (rOutputFile, 'r') as rFile:
-        for line in rFile:
+    valid_genotypes = 0
+    with open (r_output_file, 'r') as r_file:
+        for line in r_file:
             field = line.split('\t')
-            ##print(field[11] + field[12])
             if field[13] != "NA":
                 total.append(field[0] + '_' + field[1])
                 snp.append(field[0] + '_' + field[1] + '_' + field[13])
-                ##print(total)
-                ##print(snp)
-                validGenotypes = validGenotypes + 1
-                #print("Valid_genotypes: " + str(validGenotypes))
+                valid_genotypes = valid_genotypes + 1
             #if full genotype output is wanted, creates dictionary to do so
-            if outputGeno != None:
-                #print("Genotype file will be created")
-                genotypesDict[field[0] + "\t" + field[1] + "\t" + field[2]]["samp" + str(n)] = field[13]
+            if output_geno != None:
+                genotypes_dict[field[0] + "\t" + field[1] + "\t" + field[2]]["samp" + str(n)] = field[13]
         #quit if no valid genotypes
-        if validGenotypes <= 1:
+        if valid_genotypes <= 1:
             print("Not enough information to continue")
             sys.exit()
-    ##print(total)
-    ##print(snp)
-    ##print(genotypesDict)
-    rFile.close()
+    r_file.close()
     return total, snp
 
 #Program start:
@@ -180,78 +142,73 @@ parser.add_argument("snp_file")
 parser.add_argument("output_file")
 parser.add_argument("--output_geno")
 args = parser.parse_args()
-##unnecessary?
-bam1 = args.bam_file_1 
-bam2 = args.bam_file_2
-refFasta = args.ref_fasta
-snpFile = args.snp_file
+
+bam_1 = args.bam_file_1 
+bam_2 = args.bam_file_2
+ref_fasta = args.ref_fasta
+snp_file = args.snp_file
 output = args.output_file
-outputGeno = args.output_geno
+output_geno = args.output_geno
 
 #checks for index for bam & reference FASTA files
-checkForIndex(bam1 + ".bai") #will need + ".bai" & fasta will need + ".fa"
-checkForIndex(bam2 + ".bai")
-checkForIndex(refFasta + ".fai")
+check_for_index(bam_1 + ".bai") #will need + ".bai" & fasta will need + ".fa"
+check_for_index(bam_2 + ".bai")
+check_for_index(ref_fasta + ".fai")
 
 #create temp directory for munging
 tempdir = tempfile.mkdtemp()
 print(tempdir)
 
 #execute bam-readcount on both bam files, returns rc .tsv files
-rc1 = bamReadcount(bam1)
-rc2 = bamReadcount(bam2)
+rc_1 = bam_readcount(bam_1)
+rc_2 = bam_readcount(bam_2)
 
 #parse the rc return file for the data fields that we want
-parsed1 = parseRc(rc1, 1)
-parsed2 = parseRc(rc2, 2)
+parsed_1 = parse_rc(rc_1, 1)
+parsed_2 = parse_rc(rc_2, 2)
 
 #run R on the fields to determine genotypes
-geno_out_1 = geno_calc(parsed1, 1)
-geno_out_2 = geno_calc(parsed2, 2)
+geno_out_1 = geno_calc(parsed_1, 1)
+geno_out_2 = geno_calc(parsed_2, 2)
 
 #get genotype data from R results
-genotypesDict = defaultdict(dict)
-total1, snp1 = getGenotypes(geno_out_1, 1)
-total2, snp2 = getGenotypes(geno_out_2, 2)
+genotypes_dict = defaultdict(dict)
+total_1, snp_1 = get_genotypes(geno_out_1, 1)
+total_2, snp_2 = get_genotypes(geno_out_2, 2)
 
 #write full genotype file in .bed format if specified in args
-if outputGeno != None:
-    with open(outputGeno, 'w') as genoFile:
+if output_geno != None:
+    with open(output_geno, 'w') as geno_file:
         #write header
-        genoFile.write("Chr" + "\t" + "Start" + "\t" + "Stop" + "\t" + "Genotype" + "\t" + "Sample1" + "\t" + "Sample2" + "\n")
-        for key in genotypesDict:
+        geno_file.write("Chr" + "\t" + "Start" + "\t" + "Stop" + "\t" + "Genotype" + "\t" + "Sample1" + "\t" + "Sample2" + "\n")
+        for key in genotypes_dict:
             field = key.split('\t')
             #makes sure each has 2 samples
-            if 'samp1' in genotypesDict[key] and 'samp2' in genotypesDict[key]:
-                #print("Dict error fixed")
-                #print(field[0] + "\t" +  field[1] + "\t"  + field[1] + "\t" + genotypesDict[key]['samp1'] + "\t" + genotypesDict[key]['samp2'])
-                genoFile.write(field[0] + "\t" +  field[1] + "\t"  + field[1] + "\t" + genotypesDict[key]['samp1'] + "\t" + genotypesDict[key]['samp2'] + "\n")
-    genoFile.close()
+            if 'samp1' in genotypes_dict[key] and 'samp2' in genotypes_dict[key]:
+                geno_file.write(field[0] + "\t" +  field[1] + "\t"  + field[1] + "\t" + genotypes_dict[key]['samp1'] + "\t" + genotypes_dict[key]['samp2'] + "\n")
+    geno_file.close()
 
 #calculates matches
-samplesWoComparison = 0
-allSamples = total1 + total2
-totalSamples = len(allSamples)
-for samp in allSamples:
-    if allSamples.count(samp) != 2:
-        samplesWoComparison += 1
-totalSamplesFixed = totalSamples - samplesWoComparison
-totalMatchesPossible = totalSamplesFixed / 2
-print(totalSamplesFixed)
-print(totalMatchesPossible)
+samples_wo_comparison = 0
+all_samples = total_1 + total_2
+total_samples = len(all_samples)
+for samp in all_samples:
+    if all_samples.count(samp) != 2:
+        samples_wo_comparison += 1
+total_samples_fixed = total_samples - samples_wo_comparison
+total_matches_possible = total_samples_fixed / 2
 
-totalUniq = len(list(set(snp1 + snp2)))
-print(totalUniq)
+total_uniq = len(list(set(snp_1 + snp_2)))
 
-totalMatches = totalSamplesFixed - totalUniq
+total_matches = total_samples_fixed - total_uniq
 
 #write calculations to output file
-with open(output, 'w') as outputFile:
-    outputFile.write("%7s\t%22s\t%15s"%("Matches", "Total Matches Possible","Percent Matched"))
-    outputFile.write("%7s\t%22s\t%15s"%(totalMatches, totalMatchesPossible, (totalMatches / totalMatchesPossible) * 100))
+with open(output, 'w') as output_file:
+    output_file.write("%7s\t%22s\t%15s"%("Matches", "Total Matches Possible","Percent Matched"))
+    output_file.write("%7s\t%22s\t%15s"%(total_matches, total_matches_possible, (total_matches / total_matches_possible) * 100))
 
     print("%7s\t%22s\t%15s"%("Matches", "Total Matches Possible","Percent Matched"))
-    print("%7d\t%22d\t%15f"%(totalMatches, totalMatchesPossible, float(totalMatches) / float(totalMatchesPossible) * 100))
-outputFile.close()
+    print("%7d\t%22d\t%15f"%(total_matches, total_matches_possible, float(total_matches) / float(total_matches_possible) * 100))
+output_file.close()
 
 print("--- %s seconds ---"%(time.time() - start_time))

@@ -1,44 +1,45 @@
 cwlVersion: v1.0
 class: CommandLineTool
 label: "concordance_tool"
-baseCommand: 
-#which Docker container?
+baseCommand: ["python", "/opt/concordance/newConcordance.py"]
 hints:
     class: DockerRequirement
-    dockerPull:
+    dockerPull: "mneveau/docker-cle"
 arguments:
 inputs:
     reference:
 	type: File
 	inputBinding:
-	    prefix: "-R"
-	    position: 1
+	    position: 3
 	secondaryFiles: [".fai", "^.dict"]
     tumor_bam:
 	type: File
 	inputBinding:
-	    prefix: "-I:tumor"
-	    position: 2
+	    position: 1
 	secondaryFiles; [^.bai]
     normal_bam:
 	type: File
 	inputBinding:
-	    preifix: "-I:normal"
-	    position: 3
+	    position: 2
 	secondaryFiles: [^.bai]
     snp:
 	type: File
 	inputBinding:
-	    prefix: "-S"
 	    position: 4
+    output_file_name:
+	type: string
+	    position: 5
+    output_genotypes_file_name:
+	type: string
+	    position: 6
 outputs:
     output_file:
 	type: File
 	outputBinding:
-  	    glob: "output.bed"
+  	    glob: "*.txt"
     output_genotypes:
 	type: File
 	outputBinding:
-	    glob: "genotype_output.txt"
+	    glob: "*.bed"
 
 
