@@ -5,10 +5,18 @@ LABEL \
     description="Image for Concordance tool"
 
 RUN apt -get update -y && apt -get install -y \
+    wget \
     git \
     unzip \
+    python \
     python-dev \
     python-pip \
+    
+##################
+#Concordance Tool#
+##################
+WORKDIR /opt/
+RUN git clone https://github.com/mnneveau/concordance
     
 ####################
 #Fisher Python Test#
@@ -37,3 +45,4 @@ RUN git clone https://github.com/genome/bam-readcount.git /tmp/bam-readcount-0.7
 
 COPY bam_readcount_helper.py /usr/bin/bam_readcount_helper.py
 RUN pip install cyvcf2
+
