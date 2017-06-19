@@ -9,6 +9,6 @@ reference:
     path: /gscmnt/ams1102/info/model_data/2869585698/build106942997/all_sequences.fa
 snp:
     class: File
-    path: /gscmnt/gc9018/info/feature_list/ccb8bd8a885b47a78eb81223ccfcb458/ccb8bd8a885b47a78eb81223ccfcb458.bed/
+    path: /gscmnt/gc9018/info/feature_list/ccb8bd8a885b47a78eb81223ccfcb458/ccb8bd8a885b47a78eb81223ccfcb458.bed
 output_file_name: "concordance_output.txt"
 output_genotypes_file_name: "concordance_geno_out.bed"
