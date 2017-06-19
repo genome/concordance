@@ -15,7 +15,7 @@ inputs:
         type: File
         inputBinding: 
             position: 1
-        secondaryFiles; [^.bai]
+        secondaryFiles: [^.bai]
     normal_bam: 
         type: File
         inputBinding: 
