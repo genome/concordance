@@ -204,8 +204,9 @@ total_matches = total_samples_fixed - total_uniq
 
 #write calculations to output file
 with open(output, 'w') as output_file:
-    output_file.write("%7s\t%22s\t%15s"%("Matches", "Total Matches Possible","Percent Matched"))
-    output_file.write("%7s\t%22s\t%15s"%(total_matches, total_matches_possible, (total_matches / total_matches_possible) * 100))
+    output_file.write("Concordance Summary: \n")
+    output_file.write("%7s\t%22s\t%15s\n"%("Matches", "Total Matches Possible","Percent Matched"))
+    output_file.write("%7s\t%22s\t%15s\n"%(total_matches, total_matches_possible, (float(total_matches) / float(total_matches_possible)) * 100))
 
     print("%7s\t%22s\t%15s"%("Matches", "Total Matches Possible","Percent Matched"))
     print("%7d\t%22d\t%15f"%(total_matches, total_matches_possible, float(total_matches) / float(total_matches_possible) * 100))

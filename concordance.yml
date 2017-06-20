@@ -11,4 +11,3 @@ snp:
     class: File
     path: /gscmnt/gc9018/info/feature_list/ccb8bd8a885b47a78eb81223ccfcb458/ccb8bd8a885b47a78eb81223ccfcb458.bed
 output_file_name: "concordance_output.txt"
-output_genotypes_file_name: "concordance_geno_out.bed"
