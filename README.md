@@ -1,4 +1,5 @@
 # concordance
+CWL and py script for tool to ensure concordance between tumor and normal samples
 
 Command: python newConcordance.py bam1 bam2 ref_fasta snps output --output_geno geno
 
